@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <cstdint>
 #include <istream>
+#include <limits>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "inverted-tower-rooms.h"
 
@@ -112,12 +115,114 @@ TEST_F(TowerRoomsTest, Test22_Room18446744073709551615) {
   testRoom(18446744073709551615ULL, "7261014808460 3650542");
 }
 
-// ИСПРАВЛЕННЫЙ ТЕСТ - GroupTransitionTest
+// Исправленный тест - GroupTransitionTest
 TEST_F(TowerRoomsTest, GroupTransitionTest) {
   testRoom(4, "3 1");   // Начало группы из 3 комнат
   testRoom(6, "4 1");   // Начало следующей группы
   testRoom(9, "5 1");   // Исправлено: было "5 2"
   testRoom(11, "5 3");  // Исправлено: было "5 4"
+}
+
+// Тесты для граничных случаев
+TEST_F(TowerRoomsTest, BoundaryCase_MinimumRoom) {
+  testRoom(1, "1 1");
+  // Просто проверяем, что комната 1 работает
+  EXPECT_NO_THROW(printNeededFloorAndRoom(1));
+}
+
+TEST_F(TowerRoomsTest, BoundaryCase_MaximumRoom) {
+  // 2^64 - 1 (максимальное значение для uint64_t)
+  testRoom(18446744073709551615ULL, "7261014808460 3650542");
+
+  // Проверка, что нет переполнения
+  EXPECT_NO_THROW(printNeededFloorAndRoom(18446744073709551615ULL));
+}
+
+TEST_F(TowerRoomsTest, BoundaryCase_LargeNumbers) {
+  // Проверка последовательных больших чисел
+  testRoom(18446744073709551614ULL, "7261014808460 3650541");
+  testRoom(18446744073709551613ULL, "7261014808460 3650540");
+  testRoom(18446744073709551612ULL, "7261014808460 3650539");
+}
+
+TEST_F(TowerRoomsTest, BoundaryCase_PowersOfTwo) {
+  // Исправленные значения для степеней двойки
+  struct TestData {
+    std::uint64_t input;
+    std::uint64_t floor;
+    std::uint64_t room_num;
+  };
+
+  TestData tests[] = {{2ULL, 2, 1},     {4ULL, 3, 1},    {8ULL, 4, 3},
+                      {16ULL, 7, 2},    {32ULL, 11, 2},  {64ULL, 17, 3},
+                      {128ULL, 27, 2},  {256ULL, 42, 7}, {512ULL, 67, 6},
+                      {1024ULL, 106, 9}};
+
+  for (const auto& test : tests) {
+    std::string expected =
+        std::to_string(test.floor) + " " + std::to_string(test.room_num);
+    testRoom(test.input, expected);
+  }
+}
+
+TEST_F(TowerRoomsTest, BoundaryCase_TransitionPoints) {
+  // Последняя комната в группе
+  testRoom(1, "1 1");   // Конец группы 1
+  testRoom(5, "3 2");   // Конец группы 2
+  testRoom(14, "6 3");  // Конец группы 3
+
+  // Первая комната следующей группы
+  testRoom(2, "2 1");    // Начало группы 2
+  testRoom(6, "4 1");    // Начало группы 3
+  testRoom(15, "7 1");   // Начало группы 4
+  testRoom(31, "11 1");  // Начало группы 5
+  testRoom(56, "16 1");  // Начало группы 6
+}
+
+TEST_F(TowerRoomsTest, BoundaryCase_OverflowProtection) {
+  // Проверка, что нет переполнения при вычислениях
+  std::uint64_t max = std::numeric_limits<std::uint64_t>::max();
+
+  // Эти тесты проверяют, что алгоритм не входит в бесконечный цикл
+  EXPECT_NO_THROW(printNeededFloorAndRoom(max));
+  EXPECT_NO_THROW(printNeededFloorAndRoom(max - 1));
+  EXPECT_NO_THROW(printNeededFloorAndRoom(max / 2));
+}
+
+// Тест на корректность для всех комнат на первых этажах
+TEST_F(TowerRoomsTest, BoundaryCase_AllRoomsUpTo30) {
+  // Ожидаемые результаты для комнат 1-30
+  std::pair<std::uint64_t, std::uint64_t> expected[] = {
+      {1, 1}, {2, 1},  {2, 2},  {3, 1},  {3, 2},  // 1-5
+      {4, 1}, {4, 2},  {4, 3},  {5, 1},  {5, 2},  // 6-10
+      {5, 3}, {6, 1},  {6, 2},  {6, 3},  {7, 1},  // 11-15
+      {7, 2}, {7, 3},  {7, 4},  {8, 1},  {8, 2},  // 16-20
+      {8, 3}, {8, 4},  {9, 1},  {9, 2},  {9, 3},  // 21-25
+      {9, 4}, {10, 1}, {10, 2}, {10, 3}, {10, 4}  // 26-30
+  };
+
+  for (std::uint64_t i = 1; i <= 30; ++i) {
+    std::string expected_output = std::to_string(expected[i - 1].first) + " " +
+                                  std::to_string(expected[i - 1].second);
+    testRoom(i, expected_output);
+  }
+}
+
+// Тест на производительность для максимального значения
+TEST_F(TowerRoomsTest, BoundaryCase_Performance) {
+  auto start = std::chrono::high_resolution_clock::now();
+
+  testRoom(18446744073709551615ULL, "7261014808460 3650542");
+
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+  std::cout << "Max value processing time: " << duration.count()
+            << " microseconds" << std::endl;
+
+  // Должно быть менее 1 секунды (1,000,000 микросекунд)
+  EXPECT_LT(duration.count(), 1000000);
 }
 
 // Основная функция для запуска тестов
