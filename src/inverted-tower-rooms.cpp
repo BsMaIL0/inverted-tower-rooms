@@ -15,7 +15,7 @@ void printNeededFloorAndRoom(std::uint64_t room_number) {
     iterations++;
     if (iterations > MAX_ITERATIONS) {
       std::cerr << "Error: Maximum iterations exceeded. Possible infinite loop."
-                << std::endl;
+                << '\n';
       return;
     }
 
@@ -34,7 +34,7 @@ void printNeededFloorAndRoom(std::uint64_t room_number) {
     group++;
 
     if (group == 0) {
-      std::cerr << "Error: Group overflow detected." << std::endl;
+      std::cerr << "Error: Group overflow detected." << '\n';
       return;
     }
   }
