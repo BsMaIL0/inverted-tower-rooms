@@ -77,8 +77,19 @@ g++ -std=c++11 inverted-tower-rooms.cpp -o tower
 ## 📁 Структура проекта
 
 ```
-├── inverted-tower-rooms.cpp // решение задачи
-└── README.md // этот файл
+├── .github/workflows/
+│   └── ci.yml                # CI настройка
+├── include/
+│   └── inverted-tower-rooms.h       # заголовочный файл
+├── src/
+│   ├── main.cpp              # точка входа
+│   └── inverted-tower-rooms.cpp     # реализация алгоритма
+├── tests/
+│   └── test_inverted-tower-rooms.cpp # тесты (Google Test)
+├── CMakeLists.txt
+├── .clang-format
+├── .clang-tidy
+└── README.md
 ```
 
 
@@ -89,12 +100,15 @@ g++ -std=c++11 inverted-tower-rooms.cpp -o tower
 - Оптимизации алгоритма без использования массивов
 - Работе с циклами и условными операторами
 - Поиску закономерностей в числовых последовательностях
+- Git Actions
+- Gogle Tests
+- CMakeLists
 
 ## 📌 Планы на улучшение 
 
 - [ ] Добавить обработку граничных случаев (N = 1, N = 2^64 - 1)
 - [ ] Реализовать бинарный поиск для ускорения на больших N
-- [ ] Написать юнит-тесты для проверки корректности
+- [x] Написать юнит-тесты для проверки корректности
 - [ ] Добавить визуализацию башни в консоли
 
 ## Автор
